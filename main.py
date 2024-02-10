@@ -1,6 +1,7 @@
 import re
 import os
 from PyPDF2 import PdfReader
+import shutil
 
 def extrair_texto_entre_palavras(pdf_texto, palavra_inicial, palavra_final):
     padrao = re.compile(f'{palavra_inicial}(.*?){palavra_final}', re.DOTALL)
@@ -10,15 +11,17 @@ def extrair_texto_entre_palavras(pdf_texto, palavra_inicial, palavra_final):
     else:
         return None
 
-def renomear_arquivo_com_razao_social(nome_arquivo, razao_social):
+def renomear_arquivo_com_razao_social(caminho_arquivo, razao_social):
+    diretorio, nome_arquivo = os.path.split(caminho_arquivo)
     _, extensao = os.path.splitext(nome_arquivo)
     razao_social_limpa = re.sub(r'[\\/*?:"<>|]', '', razao_social)
-    novo_nome_arquivo = f"{razao_social_limpa}{extensao}"
-    os.rename(nome_arquivo, novo_nome_arquivo)
-    return novo_nome_arquivo
+    novo_nome_arquivo = f"CERT ISS 01.2024 {razao_social_limpa}{extensao}"
+    novo_caminho_arquivo = os.path.join(diretorio, novo_nome_arquivo)
+    shutil.move(caminho_arquivo, novo_caminho_arquivo)
+    return novo_caminho_arquivo
 
 # Diretório contendo os arquivos PDF
-diretorio = "C:/Users/Claudenir/Desktop/Renomear PDF's" 
+diretorio = "C:/Users/Claudenir/Desktop/Renomear PDF's/Certificados" 
 
 # Iterar sobre os arquivos no diretório
 for nome_arquivo in os.listdir(diretorio):
@@ -34,8 +37,8 @@ for nome_arquivo in os.listdir(diretorio):
         razao_social = extrair_texto_entre_palavras(pdf_texto, 'Razão Social:', 'Endereço')
 
         if razao_social:
-            # Renomear o arquivo com base na razão social
-            novo_nome_arquivo = renomear_arquivo_com_razao_social(caminho_arquivo, razao_social)
-            print(f"Arquivo '{nome_arquivo}' renomeado para: {novo_nome_arquivo}")
+            # Renomear o arquivo com base na razão social e manter na mesma pasta
+            novo_caminho_arquivo = renomear_arquivo_com_razao_social(caminho_arquivo, razao_social)
+            print(f"Arquivo '{nome_arquivo}' renomeado para: {novo_caminho_arquivo}")
         else:
             print(f"Razão social não encontrada para o arquivo '{nome_arquivo}'.")
